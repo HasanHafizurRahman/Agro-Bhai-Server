@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId, ObjectID } = require('mongodb');
 require('dotenv').config();
 const app = express();
@@ -18,12 +19,30 @@ async function run() {
     try {
         await client.connect();
         const toolCollection = client.db('AgroBhai').collection('tool');
+        const userCollection = client.db('AgroBhai').collection('users');
 
         app.get('/tool', async (req, res) =>{
             const query = {};
             const cursor = toolCollection.find(query);
             const tools = await cursor.toArray();
             res.send(tools);
+        })
+
+        app.put('/user/:email', async(req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result1 = await userCollection.updateOne(filter, updateDoc, options);
+            const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1y' })
+            res.send(result1);
+        })
+
+        app.get('/order', async (req, res) =>{
+
         })
 
         app.get('/tool/:id', async(req, res) =>{
