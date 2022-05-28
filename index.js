@@ -19,6 +19,7 @@ async function run() {
     try {
         await client.connect();
         const toolCollection = client.db('AgroBhai').collection('tool');
+        const myOrderCollection = client.db('AgroBhai').collection('myOrder');
         const userCollection = client.db('AgroBhai').collection('users');
 
         app.get('/tool', async (req, res) =>{
@@ -41,8 +42,18 @@ async function run() {
             res.send(result1);
         })
 
-        app.get('/order', async (req, res) =>{
+        app.post('/myOrder', async(req, res)=> {
+            const newOrder = req.body;
+            const result = await myOrderCollection.insertOne(newOrder);
+            res.send(result);
+        })
 
+        app.get('/myOrder', async (req, res) =>{
+            const email = req.query.email;
+            const query = {email: email}
+            const cursor = myOrderCollection.find(query);
+            const myOrder = await cursor.toArray();
+            res.send(myOrder);
         })
 
         app.get('/tool/:id', async(req, res) =>{
